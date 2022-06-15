@@ -4,3 +4,9 @@
 [submodule "bot"]
 	path = bot
 	url = ./bot
+[submodule "pago"]
+	path = pago
+	url = ./pago
+[submodule "aelectrico_site"]
+	path = aelectrico_site
+	url = ./aelectrico_site
