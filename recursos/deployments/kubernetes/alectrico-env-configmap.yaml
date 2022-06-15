@@ -1,0 +1,45 @@
+apiVersion: v1
+data:
+  API_KEY: dKVhq1WGt_XapIYirTXNyUKoWTDFfxaEV63-O5jcsdw
+  APP_KEY: 760272c4-9950-4bf3-be16-a6729800231a
+  AUTORIZADO_BOX_END_HOUR: "10"
+  AUTORIZADO_BOX_START_HOUR: "0"
+  CAMPAIGN_PARAMS: '{ "limite":10,"clase":"C","reset":"7"}'
+  CAPTURE_ERROR: "true"
+  CREDIT_EXPIRATION_MONTHS: "2"
+  DESTROY_PRESUPUESTO: borrar
+  DOLAR_MAXIMO: "900"
+  DOLAR_MINIMO: "500"
+  GOOGLE_CLIENT_ID: 937128653419-n6h8mi495vksf381u5knc6js38cof1l9.apps.googleusercontent.com
+  GOOGLE_CLIENT_SECRET: 2tCOqBRcaCU6c4j0ezerNApE
+  HOST_URL: db
+  IN_DOCKER: "true"
+  LANG: es_CL.UTF-8
+  LANGUAGE: es_CL:es
+  LC_IDENTIFICATION: es_CL.UTF-8
+  LC_NAME: es_CL.UTF-8
+  LC_TELEPHONE: es_CL.UTF-8
+  LC_TIME: es_CL.UTF-8
+  MAX_PRESUPUESTOS_COMPARTIDOS: "4"
+  MAX_SERVICIOS_POR_ORDEN: "10"
+  MICRO_SERVICIOS_PERMITIDOS: registro www help shop shop-staging designer iframe staging servicios stories www login frontend
+  ONEPAY_MODE: sandbox
+  PORT: "4000"
+  RAILS_ENV: test
+  RAILS_MAX_THREADS: "3"
+  RECYCLE: "false"
+  REDISTOGO_URL: redis://username:password@my.host:6389
+  SALDO_MINIMO: "10000"
+  SBIF_API_KEY: 45f6fb6f610d5b021995f78fa8d70638dc5cf912
+  SECRET_KEY_BASE: "123"
+  SHARED_SECRET: ?XW
+  USER_DATA: postgres
+  USER_PASS: "1"
+  VAPID_PRIVATE_KEY: q3fl7Djkc_sAWiO6qp6SlEatKz7L3DkXBsX4fj9Z5xs=
+  VAPID_PUBLIC_KEY: BJgcGAFGOCwJEKyBxKfCHa14ekjhmqaf2h793YWUsZc3MVeAqjwBLYWhD8CCU3JhONBOZcLA0KxdaagEXH4-f6w=
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: backend-alectrico-env
+  name: alectrico-env

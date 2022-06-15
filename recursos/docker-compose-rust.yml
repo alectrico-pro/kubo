@@ -1,0 +1,82 @@
+#Esto se usa por bitbucket para componer dos serivicios web y deb
+#Considera Dockerfile y .dockerignore para componer el servicio web
+#No hace prueba. PEro ahora sí hace pruebas en github. No he encontrado otra forma
+version: '3'
+
+volumes:
+  bundle_cache:
+
+
+services:
+  db:
+    container_name: db
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: 1
+      PUID: 1000
+      PGID: 1000
+    volumes:
+      - ./tmp/data:/var/lib/postgresql/data
+    expose:
+      - 5432
+
+
+  backend:
+    build: ../alectrica/alectrica_site
+    env_file:
+      - ../alectrica/alectrica_site/alectrico.env
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rake db:create && bundle exec rake db:migrate && bundle exec rspec && bundle exec rails t && bundle exec rake cucumber:servicios && bundle exec rake cucumber:colaboracion && bundle exec rake cucumber:www "
+        #command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 4000 -b '0.0.0.0' "
+    volumes:
+      - ../alectrica/alectrica_site:/myapp
+      - bundle_cache:/usr/local/bundle
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+
+
+  rust:
+          container_name: rust
+          hostname: rust
+          build: ../wrangler
+          command: wrangler dev
+          ports:
+            - "8976:8976"
+
+
+
+  www:
+    image: curlimages/curl
+    command: >
+                curl -v -X GET http://172.20.0.1:4000
+                -H "Content-Type":"application/json"
+
+  repair: 
+    image: curlimages/curl
+    command: >
+                curl -v -X GET http://127.0.0.1:8787
+                -H "Content-Type":"application/json"
+
+  tbk:
+    container_name: curl
+    image: curlimages/curl
+    hostname: curl
+    command: >
+                curl -v -X POST https://webpay3gint.transbank.cl/rswebpaytransaction/api/webpay/v1.0/transactions 
+                --data '{ "buy_order": "ordenCompra12345678", "session_id":"session1234557545", "amount": "1000", "return_url": "https://www.alectrica.cl/callback_onepay"}' 
+                -H "Content-Type":"application/json" 
+                -H "Tbk-Api-Key-Id":"597055555532" 
+                -H "Tbk-Api-Key-Secret":"579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C"
+
+  mach: 
+    image: curlimages/curl
+    command: >
+                curl -v -X POST https://biz-sandbox.soymach.com/payments
+                --data '{ "payment": { "amount": 3000, "message": "jj", "title": "jj" } }' 
+                -H "Content-Type:application/json" 
+                -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJidXNpbmVzc01hY2hJZCI6ImQyODcxM2M5LWFlOGEtNDYzZC05OGE5LWE5NjM2NTZlZWJkMyIsImJ1c2luZXNzU2VjcmV0SWQiOiI2NmJmZTFlYS01OTIzLTQ4MGItOWQ3Yy1hMTBkZGNiZWVlZmMiLCJzY29wZXMiOlsicGF5bWVudHMuY3JlYXRlIiwicGF5bWVudHMuZ2V0Il0sImlhdCI6MTU5OTA5NDM0Mn0.tEWX5LuT2-9SWrgysXavoft1yz7BiRVOjjB8-NRZVys"
+               
+
+...

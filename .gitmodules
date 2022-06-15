@@ -1,0 +1,6 @@
+[submodule "alectrica_site"]
+	path = alectrica_site
+	url = ./alectrica_site
+[submodule "bot"]
+	path = bot
+	url = ./bot

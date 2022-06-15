@@ -1,0 +1,231 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.26.1 (a9d05d509)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: backend
+  name: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: backend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.26.1 (a9d05d509)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: backend
+    spec:
+      containers:
+        - args:
+            - bash
+            - -c
+            - rm -f tmp/pids/server.pid && bundle exec rake db:create && bundle exec rake db:migrate && bundle exec rspec spec/requests/api/v1/comercio/servicios_spec.rb:315
+          env:
+            - name: API_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: API_KEY
+                  name: alectrico-env
+            - name: APP_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: APP_KEY
+                  name: alectrico-env
+            - name: AUTORIZADO_BOX_END_HOUR
+              valueFrom:
+                configMapKeyRef:
+                  key: AUTORIZADO_BOX_END_HOUR
+                  name: alectrico-env
+            - name: AUTORIZADO_BOX_START_HOUR
+              valueFrom:
+                configMapKeyRef:
+                  key: AUTORIZADO_BOX_START_HOUR
+                  name: alectrico-env
+            - name: CAMPAIGN_PARAMS
+              valueFrom:
+                configMapKeyRef:
+                  key: CAMPAIGN_PARAMS
+                  name: alectrico-env
+            - name: CAPTURE_ERROR
+              valueFrom:
+                configMapKeyRef:
+                  key: CAPTURE_ERROR
+                  name: alectrico-env
+            - name: CREDIT_EXPIRATION_MONTHS
+              valueFrom:
+                configMapKeyRef:
+                  key: CREDIT_EXPIRATION_MONTHS
+                  name: alectrico-env
+            - name: DESTROY_PRESUPUESTO
+              valueFrom:
+                configMapKeyRef:
+                  key: DESTROY_PRESUPUESTO
+                  name: alectrico-env
+            - name: DOLAR_MAXIMO
+              valueFrom:
+                configMapKeyRef:
+                  key: DOLAR_MAXIMO
+                  name: alectrico-env
+            - name: DOLAR_MINIMO
+              valueFrom:
+                configMapKeyRef:
+                  key: DOLAR_MINIMO
+                  name: alectrico-env
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  key: GOOGLE_CLIENT_ID
+                  name: alectrico-env
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                configMapKeyRef:
+                  key: GOOGLE_CLIENT_SECRET
+                  name: alectrico-env
+            - name: HOST_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: HOST_URL
+                  name: alectrico-env
+            - name: IN_DOCKER
+              valueFrom:
+                configMapKeyRef:
+                  key: IN_DOCKER
+                  name: alectrico-env
+            - name: LANG
+              valueFrom:
+                configMapKeyRef:
+                  key: LANG
+                  name: alectrico-env
+            - name: LANGUAGE
+              valueFrom:
+                configMapKeyRef:
+                  key: LANGUAGE
+                  name: alectrico-env
+            - name: LC_IDENTIFICATION
+              valueFrom:
+                configMapKeyRef:
+                  key: LC_IDENTIFICATION
+                  name: alectrico-env
+            - name: LC_NAME
+              valueFrom:
+                configMapKeyRef:
+                  key: LC_NAME
+                  name: alectrico-env
+            - name: LC_TELEPHONE
+              valueFrom:
+                configMapKeyRef:
+                  key: LC_TELEPHONE
+                  name: alectrico-env
+            - name: LC_TIME
+              valueFrom:
+                configMapKeyRef:
+                  key: LC_TIME
+                  name: alectrico-env
+            - name: MAX_PRESUPUESTOS_COMPARTIDOS
+              valueFrom:
+                configMapKeyRef:
+                  key: MAX_PRESUPUESTOS_COMPARTIDOS
+                  name: alectrico-env
+            - name: MAX_SERVICIOS_POR_ORDEN
+              valueFrom:
+                configMapKeyRef:
+                  key: MAX_SERVICIOS_POR_ORDEN
+                  name: alectrico-env
+            - name: MICRO_SERVICIOS_PERMITIDOS
+              valueFrom:
+                configMapKeyRef:
+                  key: MICRO_SERVICIOS_PERMITIDOS
+                  name: alectrico-env
+            - name: ONEPAY_MODE
+              valueFrom:
+                configMapKeyRef:
+                  key: ONEPAY_MODE
+                  name: alectrico-env
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: PORT
+                  name: alectrico-env
+            - name: RAILS_ENV
+              valueFrom:
+                configMapKeyRef:
+                  key: RAILS_ENV
+                  name: alectrico-env
+            - name: RAILS_MAX_THREADS
+              valueFrom:
+                configMapKeyRef:
+                  key: RAILS_MAX_THREADS
+                  name: alectrico-env
+            - name: RECYCLE
+              valueFrom:
+                configMapKeyRef:
+                  key: RECYCLE
+                  name: alectrico-env
+            - name: REDISTOGO_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: REDISTOGO_URL
+                  name: alectrico-env
+            - name: SALDO_MINIMO
+              valueFrom:
+                configMapKeyRef:
+                  key: SALDO_MINIMO
+                  name: alectrico-env
+            - name: SBIF_API_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: SBIF_API_KEY
+                  name: alectrico-env
+            - name: SECRET_KEY_BASE
+              valueFrom:
+                configMapKeyRef:
+                  key: SECRET_KEY_BASE
+                  name: alectrico-env
+            - name: SHARED_SECRET
+              valueFrom:
+                configMapKeyRef:
+                  key: SHARED_SECRET
+                  name: alectrico-env
+            - name: USER_DATA
+              valueFrom:
+                configMapKeyRef:
+                  key: USER_DATA
+                  name: alectrico-env
+            - name: USER_PASS
+              valueFrom:
+                configMapKeyRef:
+                  key: USER_PASS
+                  name: alectrico-env
+            - name: VAPID_PRIVATE_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: VAPID_PRIVATE_KEY
+                  name: alectrico-env
+            - name: VAPID_PUBLIC_KEY
+              valueFrom:
+                configMapKeyRef:
+                  key: VAPID_PUBLIC_KEY
+                  name: alectrico-env
+          image: backend
+          name: backend
+          ports:
+            - containerPort: 4000
+          resources: {}
+          volumeMounts:
+            - mountPath: /usr/local/bundle
+              name: bundle-cache
+      restartPolicy: Always
+      volumes:
+        - name: bundle-cache
+          persistentVolumeClaim:
+            claimName: bundle-cache
+status: {}

@@ -1,0 +1,10 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: pqsql
+spec:
+  type: ExternalName
+  externalName: rosie.db.elephantsql.com
+         
+  #postgres://nsxhkemo:GJ8sTc6GYBFofwE56PRKFUDxv_A5UIQ9@rosie.db.elephantsql.com/nsxhkemo
+

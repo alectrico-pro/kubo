@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web
+      tier: middletier
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      hostname: web
+      containers:
+        - name: web-container
+          image: alectrico/repo:alectrica_site_web
+          ports:
+            - containerPort: 4567
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: db
+      tier: backenddb
+  template:
+    metadata:
+      labels:
+        app: db
+        tier: backenddb
+    spec:
+      containers:
+        - env:
+            - name: POSTGRES_PASSWORD
+              value: "1"
+          image: postgres
+          name: db
+          ports:
+          - containerPort: 5432
+
+status: {}

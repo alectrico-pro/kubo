@@ -1,0 +1,47 @@
+#Esto se usa por bitbucket para componer dos serivicios web y deb
+#Considera Dockerfile y .dockerignore para componer el servicio web
+#No hace prueba. PEro ahora sí hace pruebas en github. No he encontrado otra forma
+#Ahora lo he modificado para hacer pruebas en un tema de Transbank
+#Ya no haré pruebas en bitbucket, me conformaré con pruebas locales
+version: '3'
+
+volumes:
+  bundle_cache:
+
+
+services:
+  db:
+    container_name: pg
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: 1
+      PUID: 1000
+      PGID: 1000
+      #   volumes:
+            # ./tmp/data:/var/lib/postgresql/data
+    expose:
+      - 5432
+    ports:
+      - "5432:5432"
+
+
+  backend:
+    build: /media/tio/docker-data/alectrica/alectrica_site
+    env_file:
+            #- /media/tio/docker-data/alectrica/alectrica_site/alectrico.env
+      - alectrico.env
+        #command: bash -c "rm -f tmp/pids/server.pid && bundle exec rake db:create && bundle exec rake db:migrate && bundle exec rspec && bundle exec rails t && bundle exec rake cucumber:servicios && bundle exec rake cucumber:colaboracion && bundle exec rake cucumber:www "
+        #command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 4000 -b '0.0.0.0' "
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rake db:create && bundle exec rake db:migrate && bundle exec rspec spec/requests/api/v1/comercio/servicios_spec.rb:315"
+
+    volumes:
+      - /media/tio/docker-data/alectrica/alectrica_site:/myapp
+      - bundle_cache:/usr/local/bundle
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db
+
+
+

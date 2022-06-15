@@ -1,0 +1,35 @@
+#Esto se usa por bitbucket para componer dos serivicios web y deb
+#Considera Dockerfile y .dockerignore para componer el servicio web
+#No hace prueba. PEro ahora sí hace pruebas en github. No he encontrado otra forma
+version: '3'
+services:
+  db:
+    container_name: db
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: 1
+    volumes:
+      - ./tmp/data:/var/lib/postgresql/data
+
+
+  web:
+    container_name: web
+    hostname: web
+    build: .
+    env_file:
+      - alectrico.env
+    #ommand: bash -c "rm -f tmp/pids/server.pid && bundle exec rake db:create && bundle exec rake db:migrate && bundle exec rspec && bundle exec rails t && bundle exec rake cucumber:servicios && bundle exec rake cucumber:colaboracion && bundle exec rake cucumber:www "
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 4000 -b '0.0.0.0' "
+    volumes:
+      - .:/myapp
+      - bundle_cache:/usr/local/bundle
+
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db
+
+volumes:
+  bundle_cache:
+
