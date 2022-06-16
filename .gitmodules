@@ -10,3 +10,6 @@
 [submodule "aelectrico_site"]
 	path = aelectrico_site
 	url = ./aelectrico_site
+[submodule "repair"]
+	path = repair
+	url = ./repair
