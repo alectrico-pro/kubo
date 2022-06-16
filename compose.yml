@@ -417,7 +417,29 @@ services:
       - dev 
       - --env=development
 
-  dash:
+
+  repair:
+    container_name: repair-d
+    image: repair
+    hostname: repair.example.com
+    build:
+      context: ./repair
+      dockerfile: ../wrangler.Dockerfile
+    volumes:
+      - ./repair:/root
+    ports:
+      - "9100:9100"
+    profiles:
+      - test
+    networks:
+      - testnet
+    command:
+      - wrangler
+      - dev
+      - --env=development
+
+
+  dash-pago:
     container_name: pago-dash
     image: pago
     tty: true
@@ -427,6 +449,21 @@ services:
       dockerfile: ../wrangler.Dockerfile
     volumes:
       - ./pago:/root
+    profiles:
+      - test
+    networks:
+      - testnet
+
+  dash-repair:
+    container_name: repair-dash
+    image: dash-repair
+    tty: true
+    stdin_open: true
+    build:
+      context: ./repair
+      dockerfile: ../wrangler.Dockerfile
+    volumes:
+      - ./repair:/root
     profiles:
       - test
     networks:
