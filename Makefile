@@ -2,6 +2,19 @@ RUBY = ruby
 ERB = erb
 KINDLEGEN = bin/kindlegen
 
+#agregar copyright
+%.jpg.tmp: %.jpg
+	for archivo in $^ ;  do \
+          cp "$$archivo" "$$archivo".tmp ; \
+          echo "Notificando Copyright en $$archivo" ; \
+          convert -background '#0008' -fill white -gravity  center -size 310x100 \
+          caption:"© alectrico ® 2022 " \
+          "$$archivo".tmp +swap -gravity south -composite "$$archivo".tmp ; \
+          #p png-partidas/*.png.tmp alectrico-2021 ; \
+        done; 
+
+
+
 pyt:
 	docker build bot -t pyt -f python.Dockerfile
 	docker run -it --rm -e PUID=1000 -e PGUID=1000 -v $(PWD)/bot/:/app pyt bash

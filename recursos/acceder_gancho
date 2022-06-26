@@ -1,0 +1,10 @@
+Headers
+
+Many client software apps (e.g., Postman) take the username:password parameter and build the authentication header automatically. If you need to build it yourself, here are the basic steps:
+
+    Create the username:password string.
+    Use your favorite tool to base64-encode the string.
+
+The base64 encoding for the default username and password string admin:secret results in YWRtaW46c2VjcmV0, so the admin credentials will be Authorization: Basic YWRtaW46c2VjcmV0.
+
+probar accesando a gancho con basic:
