@@ -209,6 +209,12 @@ services:
       context: ./alectrica_site
       target: local-tester
     environment:
+      WEBPAY_METHOD: POST
+      WEBPAY_MODE: live
+      WEBPAY_API_KEY: 597036225750
+      WEBPAY_SHARED_SECRET: 2438ac00992d73fe1c3a0b501e8a90bb
+      WEBPAY_CODIGO_COMERCIO: 36225750
+      WEPBAY_VERSION: 1.0
       NO_USAR_DATABASE_CLEANER: 'usar'
     image: ale-test-test-d:1.0.0
     volumes:
