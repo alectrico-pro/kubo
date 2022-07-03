@@ -15,7 +15,8 @@ services:
 #servicios con imagnes para pruebas en modo local        
 
   bot-migracion: 
-   build: bot
+   build: 
+     context: ../bot
    container_name: bot-d-migracion
    command: " manage.py migrate"
    networks:
@@ -24,9 +25,10 @@ services:
   bot:
    tty: true
    stdin_open: true
-   build: bot
+   build: 
+     context: ../bot
    volumes:
-     - ./bot/:/app/
+     - ../bot/:/app/
    container_name: bot-d
    ports:
      - '8000:8000'
@@ -89,14 +91,14 @@ services:
   db-migrate:
     container_name: db-migrate-d
     build:
-      context: ./alectrica_site
+      context: ../alectrica_site
       target: local-tester
     image: ale-test-dbd-migrate:1.0.0
     volumes:
-      - ./alectrica_site/:/myapp
+      - ../alectrica_site/:/myapp
       - bundle:/usr/local/bundle
     env_file:
-      - ./alectrica_site/alectrico.env
+      - ../alectrica_site/alectrico.env
     depends_on:
      db:
       condition: service_healthy
@@ -114,14 +116,14 @@ services:
   local-migrate:
     container_name: local-migrate-d
     build:
-      context: ./alectrica_site
+      context: ../alectrica_site
       target: local-tester
     image: ale-test-local-d-migrate:1.0.0
     volumes:
-      - ./alectrica_site/:/myapp
+      - ../alectrica_site/:/myapp
       - bundle:/usr/local/bundle
     env_file:
-      - ./alectrica_site/alectrico.env.local-test
+      - ../alectrica_site/alectrico.env.local-test
     environment:
       USAR_DATABASE_CLEANER: 'usar'
     networks:
@@ -138,14 +140,14 @@ services:
   tbk:
     container_name: tbk-d
     build:
-      context: ./alectrica_site
+      context: ../alectrica_site
       target: local-tester
     image: ale-test-tbk-d:1.0.0
     volumes:
-      - ./alectrica_site/:/myapp
+      - ../alectrica_site/:/myapp
       - bundle:/usr/local/bundle
     env_file:
-      - ./alectrica_site/alectrico.env
+      - ../alectrica_site/alectrico.env
     depends_on:
       db-migrate:
        condition: service_completed_successfully
@@ -159,16 +161,16 @@ services:
   test:
     container_name: test-d
     build:
-      context: ./alectrica_site
+      context: ../alectrica_site
       target: local-tester
     environment:
       NO_USAR_DATABASE_CLEANER: 'usar'
     image: ale-test-test-d:1.0.0
     volumes:
-      - ./alectrica_site/:/myapp
+      - ../alectrica_site/:/myapp
       - bundle:/usr/local/bundle
     env_file:
-      - ./alectrica_site/alectrico.env
+      - ../alectrica_site/alectrico.env
     depends_on:
       db-migrate:
         condition: service_completed_successfully
@@ -182,16 +184,16 @@ services:
   pendientes:
     container_name: pendientes-d
     build:
-      context: ./alectrica_site
+      context: ../alectrica_site
       target: local-tester
     environment:
       NO_USAR_DATABASE_CLEANER: 'usar'
     image: ale-test-test-d:1.0.0
     volumes:
-      - ./alectrica_site/:/myapp
+      - ../alectrica_site/:/myapp
       - bundle:/usr/local/bundle
     env_file:
-      - ./alectrica_site/alectrico.env
+      - ../alectrica_site/alectrico.env
     depends_on:
       db-migrate:
         condition: service_completed_successfully
@@ -206,7 +208,7 @@ services:
   tone:
     container_name: tone-d
     build:
-      context: ./alectrica_site
+      context: ../alectrica_site
       target: local-tester
     environment:
       WEBPAY_METHOD: POST
@@ -218,10 +220,10 @@ services:
       NO_USAR_DATABASE_CLEANER: 'usar'
     image: ale-test-test-d:1.0.0
     volumes:
-      - ./alectrica_site/:/myapp
+      - ../alectrica_site/:/myapp
       - bundle:/usr/local/bundle
     env_file:
-      - ./alectrica_site/alectrico.env
+      - ../alectrica_site/alectrico.env
     depends_on:
       db-migrate:
         condition: service_completed_successfully
@@ -235,14 +237,14 @@ services:
   cucumber:
     container_name: cucumber-d
     build:
-      context: ./alectrica_site
+      context: ../alectrica_site
       target: local-tester
     image: ale-test-cucumber-d:1.0.0
     volumes:
-      - ./alectrica_site:/myapp
+      - ../alectrica_site:/myapp
       - bundle:/usr/local/bundle
     env_file:
-      - ./alectrica_site/alectrico.env
+      - ../alectrica_site/alectrico.env
     depends_on:
       db-migrate:
        condition: service_completed_successfully
@@ -257,14 +259,14 @@ services:
   usuario:
     container_name: usuario-d
     build:
-      context: ./alectrica_site
+      context: ../alectrica_site
       target: local-tester
     image: ale-test-usuario-d:1.0.0
     volumes:
-      - ./alectrica_site/:/myapp
+      - ../alectrica_site/:/myapp
       - bundle:/usr/local/bundle
     env_file:
-      - ./alectrica_site/alectrico.env.local-test
+      - ../alectrica_site/alectrico.env.local-test
     environment:
       USAR_DATABASE_CLEANER: 'usar'
     networks:
@@ -279,7 +281,7 @@ services:
   testweb:
     container_name: testweb-d
     build:
-      context: ./alectrica_site
+      context: ../alectrica_site
       target: local-development
     tty: true
     stdin_open: true
@@ -296,10 +298,10 @@ services:
       LC_TIME: "es_CL.UTF-8"
       LANG: "es_CL.UTF-8"
     volumes:
-      - ./alectrica_site/:/myapp
+      - ../alectrica_site/:/myapp
       - bundle:/usr/local/bundle
     env_file:
-      - ./alectrica_site/alectrico.env
+      - ../alectrica_site/alectrico.env
     tmpfs:
       - /tmp
       - /app/tmp/pids
@@ -326,7 +328,7 @@ services:
   web:
     container_name: web-d
     build:
-      context: ./alectrica_site
+      context: ../alectrica_site
       target: local-development
     hostname: www.alectrico.d
     tty: true
@@ -344,10 +346,10 @@ services:
       LC_TIME: "es_CL.UTF-8"
       LANG: "es_CL.UTF-8"
     volumes:
-      - ./alectrica_site/:/myapp
+      - ../alectrica_site/:/myapp
       - bundle:/usr/local/bundle
     env_file:
-      - ./alectrica_site/alectrico.env
+      - ../alectrica_site/alectrico.env
     tmpfs:
       - /tmp
       - /myapp/tmp/pids
@@ -367,7 +369,7 @@ services:
   bash:
     container_name: bash-d
     build:
-      context: ./alectrica_site
+      context: ../alectrica_site
       target: local-development
     tty: true
     stdin_open: true
@@ -383,10 +385,10 @@ services:
       LC_TIME: "es_CL.UTF-8"
       LANG: "es_CL.UTF-8"
     volumes:
-      - ./alectrica_site/:/myapp
+      - ../alectrica_site/:/myapp
       - bundle:/usr/local/bundle
     env_file:
-      - ./alectrica_site/alectrico.env
+      - ../alectrica_site/alectrico.env
     tmpfs:
       - /tmp
       - /app/tmp/pids
@@ -406,7 +408,7 @@ services:
     image: pago
     hostname: pago.example.com
     build: 
-      context: ./pago
+      context: ../pago
       dockerfile: ../wrangler.Dockerfile
   #  healthcheck:
    #   test: ["CMD-SHELL", "ping 0.0.0.0:9000"]
@@ -416,7 +418,7 @@ services:
     environment:
       WEBPAY_VERSION: 1.0
     volumes:
-      - ./pago:/root
+      - ../pago:/root
     ports:
       - "9000:9000"
     profiles:
@@ -434,12 +436,12 @@ services:
     image: repair
     hostname: repair.example.com
     build:
-      context: ./repair
+      context: ../repair
       dockerfile: ../wrangler.Dockerfile
     environment:
       WEBPAY_VERSION: 1.0
     volumes:
-      - ./repair:/root
+      - ../repair:/root
     ports:
       - "9100:9100"
     profiles:
@@ -458,10 +460,10 @@ services:
     tty: true
     stdin_open: true
     build:
-      context: ./pago
+      context: ../pago
       dockerfile: ../wrangler.Dockerfile
     volumes:
-      - ./pago:/root
+      - ../pago:/root
     profiles:
       - test
     networks:
@@ -473,10 +475,10 @@ services:
     tty: true
     stdin_open: true
     build:
-      context: ./repair
+      context: ../repair
       dockerfile: ../wrangler.Dockerfile
     volumes:
-      - ./repair:/root
+      - ../repair:/root
     profiles:
       - test
     networks:
@@ -504,7 +506,7 @@ services:
     tty: true
     stdin_open: true
     build:
-      context: ./scanner
+      context: ../scanner
       dockerfile: ../scanner.Dockerfile
     depends_on:
       pago:
