@@ -1,0 +1,635 @@
+
+volumes:
+  bundle:
+
+networks:
+  remo:
+  proa:
+  rustnet:
+  testnet:
+  webnet: 
+  wannet:
+  bot:
+
+services:
+#servicios con imagnes para pruebas en modo local        
+
+  db: &db
+    image: postgres:11-bullseye
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: 1
+      PGUID: 1000
+      PUID: 1000
+      USER: tio
+      PGUSER: postgres
+    deploy:
+      replicas: 1
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  app: &app
+    build:
+      context: ../alectrica_site
+      target: local-tester
+    volumes: [".:/app"] # mount current directory into the image
+    # use tmpfs for tmp and log for performance and to allow
+    # multiple builds in parallel. Both directories are mounted
+    # into the image AFTER the working directory is mounted.
+    tmpfs: ["/app/tmp", "/app/log"]
+
+
+  test: &test
+    <<: *app
+    environment:
+      RAILS_ENV: test
+      NO_USAR_DATABASE_CLEANER: 'usar'
+    env_file:
+      - ../alectrica_site/alectrico.env
+    depends_on:
+      db-test: {"condition":"service_healthy"}
+
+  db-test:
+    <<: *db
+
+
+  bot-migrate:
+    build: 
+      context: ../bot
+    container_name: bot-d-migracion
+    command: " manage.py migrate"
+    networks:
+      - bot
+
+
+  bot:
+   tty: true
+   stdin_open: true
+   build: 
+     context: ../bot
+   volumes:
+     - ../bot/:/app/
+   container_name: bot-d
+   ports:
+     - '8000:8000'
+   networks:
+     - bot
+#--------------------
+
+  db: 
+    container_name: db-d
+    image: postgres:11-bullseye
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: 1
+      PGUID: 1000
+      PUID: 1000
+      USER: tio
+      PGUSER: postgres
+    deploy:
+      replicas: 1
+    expose:
+      - "5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - proa
+      - webnet
+      - testnet
+      - wannet
+    profiles:
+      - proa
+      - test
+      - rust
+      - wan
+
+  local-db:
+    container_name: local-db-d
+    image: postgres:11-bullseye
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: 1
+      PGUID: 1000
+      PUID: 1000
+    expose:
+     - "5433"
+    networks:
+     - remo
+    healthcheck:
+       test: ["CMD-SHELL", "pg_isready", "--host=localhost", "--port=5433" ]
+       interval: 10s
+       timeout: 5s
+       retries: 5
+    command: -p 5433
+    profiles: 
+      - remo
+   
+  db-migrate:
+    container_name: db-migrate-d
+    build:
+      context: ../alectrica_site
+      target: local-tester
+    image: ale-test-dbd-migrate:1.0.0
+    volumes:
+      - ../alectrica_site/:/myapp
+      - bundle:/usr/local/bundle
+    env_file:
+      - ../alectrica_site/alectrico.env
+    depends_on:
+     db:
+      condition: service_healthy
+    networks:
+      - webnet
+      - testnet
+
+    command: bash -c " bundle exec rake db:reset && bundle exec rake db:migrate "
+    profiles:
+      - test
+      - proa
+      - rust
+      
+
+  local-migrate:
+    container_name: local-migrate-d
+    build:
+      context: ../alectrica_site
+      target: local-tester
+    image: ale-test-local-d-migrate:1.0.0
+    volumes:
+      - ../alectrica_site/:/myapp
+      - bundle:/usr/local/bundle
+    env_file:
+      - ../alectrica_site/alectrico.env.local-test
+    environment:
+      USAR_DATABASE_CLEANER: 'usar'
+    networks:
+      - remo
+    depends_on:
+      local-db:
+        condition: service_healthy
+    command: bash -c " bundle exec rake db:reset && bundle exec rake db:migrate "
+    profiles: 
+      - remo
+
+
+
+  tbk:
+    container_name: tbk-d
+    build:
+      context: ../alectrica_site
+      target: local-tester
+    image: ale-test-tbk-d:1.0.0
+    volumes:
+      - ../alectrica_site/:/myapp
+      - bundle:/usr/local/bundle
+    env_file:
+      - ../alectrica_site/alectrico.env
+    depends_on:
+      db-migrate:
+       condition: service_completed_successfully
+    networks:
+      - proa
+    command: bash -c "  bundle exec rspec spec/requests/api/v1/comercio/servicios_spec.rb"
+    profiles:
+      - proa
+
+
+  test:
+    container_name: test-d
+    build:
+      context: ../alectrica_site
+      target: local-tester
+    environment:
+      NO_USAR_DATABASE_CLEANER: 'usar'
+    image: ale-test-test-d:1.0.0
+    volumes:
+      - ../alectrica_site/:/myapp
+      - bundle:/usr/local/bundle
+    env_file:
+      - ../alectrica_site/alectrico.env
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+    networks:
+      - proa
+    command: bash -c " bundle exec rspec && bundle exec rails t && bundle exec rake cucumber"
+    profiles:
+       - proa
+
+
+  pendientes:
+    container_name: pendientes-d
+    build:
+      context: ../alectrica_site
+      target: local-tester
+    environment:
+      NO_USAR_DATABASE_CLEANER: 'usar'
+    image: ale-test-test-d:1.0.0
+    volumes:
+      - ../alectrica_site/:/myapp
+      - bundle:/usr/local/bundle
+    env_file:
+      - ../alectrica_site/alectrico.env
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+    networks:
+      - proa
+    profiles:
+       - proa
+    command: bash -c " bundle exec rake db:test:prepare && bundle exec  rspec ./spec/controllers/electrico/presupuestos_controller_spec.rb:507 ./spec/requests/api/v1/comercio/servicios_spec.rb:461  ./spec/requests/api/v1/comercio/servicios_spec.rb:483  ./spec/requests/api/v1/comercio/servicios_spec.rb:504  ./spec/requests/api/v1/comercio/servicios_spec.rb:526  ./spec/requests/api/v1/comercio/servicios_spec.rb:592 ./spec/requests/api/v1/notificaciones_spec.rb:109 ./spec/requests/api/v1/notificaciones_spec.rb:114 ./spec/servicios/comercio/compra/multiple/onepay_spec.rb:140 ./spec/servicios/comercio/compra/unitaria/onepay_spec.rb:137 ./spec/servicios/comercio/compra/unitaria/webpay/nominativo/credito_spec.rb:98  ./spec/servicios/comercio/compra/unitaria/webpay/nominativo/repair_spec.rb:74  ./spec/servicios/comercio/compra/unitaria/webpay/nominativo/repair_spec.rb:82  ./spec/servicios/comercio/compra/unitaria/webpay/nominativo/repair_spec.rb:121 ./spec/servicios/comercio/crea_colaborador/khipu_spec.rb:20  ./spec/servicios/comercio/crea_colaborador/khipu_spec.rb:29 "
+
+
+
+  tone:
+    container_name: tone-d
+    build:
+      context: ../alectrica_site
+      target: local-tester
+    environment:
+      WEBPAY_METHOD: POST
+      WEBPAY_MODE: live
+      WEBPAY_API_KEY: 597036225750
+      WEBPAY_SHARED_SECRET: 2438ac00992d73fe1c3a0b501e8a90bb
+      WEBPAY_CODIGO_COMERCIO: 36225750
+      WEPBAY_VERSION: 1.0
+      NO_USAR_DATABASE_CLEANER: 'usar'
+    image: ale-test-test-d:1.0.0
+    volumes:
+      - ../alectrica_site/:/myapp
+      - bundle:/usr/local/bundle
+    env_file:
+      - ../alectrica_site/alectrico.env
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+    networks:
+      - proa
+    profiles:
+       - proa
+    command: bash -c " bundle exec rspec ./spec/controllers/api/v1/electrico/presupuestos_controller_spec.rb"
+
+
+  cucumber:
+    container_name: cucumber-d
+    build:
+      context: ../alectrica_site
+      target: local-tester
+    image: ale-test-cucumber-d:1.0.0
+    volumes:
+      - ../alectrica_site:/myapp
+      - bundle:/usr/local/bundle
+    env_file:
+      - ../alectrica_site/alectrico.env
+    depends_on:
+      db-migrate:
+       condition: service_completed_successfully
+    networks:
+      - proa
+    profiles:
+      - proa
+    command: bash -c " bundle exec rake cucumber "
+
+  
+
+  usuario:
+    container_name: usuario-d
+    build:
+      context: ../alectrica_site
+      target: local-tester
+    image: ale-test-usuario-d:1.0.0
+    volumes:
+      - ../alectrica_site/:/myapp
+      - bundle:/usr/local/bundle
+    env_file:
+      - ../alectrica_site/alectrico.env.local-test
+    environment:
+      USAR_DATABASE_CLEANER: 'usar'
+    networks:
+      - remo
+    depends_on:
+      local-migrate:
+       condition: service_completed_successfully
+    command: bash -c " bundle exec rspec spec/models/gestion/usuario_spec.r"
+    profiles:
+       - remo
+  
+  testweb:
+    container_name: testweb-d
+    build:
+      context: ../alectrica_site
+      target: local-development
+    tty: true
+    stdin_open: true
+    image: ale-test-web-d:1.0.0
+    environment:
+      
+      RAILS_ENV: test
+      PGUID: 1000
+      PUID: 1000
+      LANGUAGE: "es_CL:es"
+      LC_NAME: "es_CL.UTF-8"
+      LC_IDENTIFICATION: "es_CL.UTF-8"
+      LC_TELEPHONE: "es_CL.UTF-8"
+      LC_TIME: "es_CL.UTF-8"
+      LANG: "es_CL.UTF-8"
+    volumes:
+      - ../alectrica_site/:/myapp
+      - bundle:/usr/local/bundle
+    env_file:
+      - ../alectrica_site/alectrico.env
+    tmpfs:
+      - /tmp
+      - /app/tmp/pids
+    ports:
+      - "4000:4000"
+    networks:
+      - testnet
+    depends_on:
+      db-migrate:
+        condition: service_completed_successfully
+    command: bash -c "ls /usr/lib/postgresql && chmod +x dbone.sh && ./dbone.sh && bundle exec puma -C config/puma.rb"
+    profiles:
+       - test
+
+  #usado para pruebas de produción
+  #digamos que se usa curl y luego se usa nokogir para analizar si está lo deseado
+  #también debe haber una especie de ping para verificar la salud de cada endpoint
+  #No hace migraciones ni pruebas automatizadas locales
+  #Debe estar en una red wan, lo más parecida a la realidad
+  #Pero no debe descartarse que haya servicios que operen en intranet
+  #El endpoint de base de datos podría estar en intranet
+  #En la realidad está en la extranet de heroku
+  #Pero no lo he explorado aún
+  web:
+    container_name: web-d
+    build:
+      context: ../alectrica_site
+      target: local-development
+    hostname: www.alectrico.d
+    tty: true
+    stdin_open: true
+    image: ale-wan-web-d:1.0.0
+    environment:
+      WEBPAY_VERSION: 1.0
+      RAILS_ENV: test
+      PGUID: 1000
+      PUID: 1000
+      LANGUAGE: "es_CL:es"
+      LC_NAME: "es_CL.UTF-8"
+      LC_IDENTIFICATION: "es_CL.UTF-8"
+      LC_TELEPHONE: "es_CL.UTF-8"
+      LC_TIME: "es_CL.UTF-8"
+      LANG: "es_CL.UTF-8"
+    volumes:
+      - ../alectrica_site/:/myapp
+      - bundle:/usr/local/bundle
+    env_file:
+      - ../alectrica_site/alectrico.env
+    tmpfs:
+      - /tmp
+      - /myapp/tmp/pids
+    ports:
+      - "5000:5000"
+    networks:
+      - wannet
+    depends_on:
+      db:
+        condition: service_healthy
+    #command: bash -c "rm /tmp/pids -rf && rails s -b 0.0.0.0 -p 5000"
+    command: bash -c " bundle install && rm /mtp/pids -rf && chmod +x dbone.sh && ./dbone.sh && rails s -b 0.0.0.0 -p 5000"
+
+    profiles: 
+       - wan
+
+  bash:
+    container_name: bash-d
+    build:
+      context: ../alectrica_site
+      target: local-development
+    tty: true
+    stdin_open: true
+    image: ale-test-bash-d:1.0.0
+    environment:
+      RAILS_ENV: test
+      PGUID: 1000
+      PUID: 1000
+      LANGUAGE: "es_CL:es"
+      LC_NAME: "es_CL.UTF-8"
+      LC_IDENTIFICATION: "es_CL.UTF-8"
+      LC_TELEPHONE: "es_CL.UTF-8"
+      LC_TIME: "es_CL.UTF-8"
+      LANG: "es_CL.UTF-8"
+    volumes:
+      - ../alectrica_site/:/myapp
+      - bundle:/usr/local/bundle
+    env_file:
+      - ../alectrica_site/alectrico.env
+    tmpfs:
+      - /tmp
+      - /app/tmp/pids
+    networks:
+      - proa
+    depends_on:
+      db:
+        condition: service_healthy
+    command: bash
+    #command: bash -c "chmod +x dbone.sh && ./dbone.sh && bundle"
+    profiles:
+       - proa
+
+
+  pago:
+    container_name: pago-d
+    image: pago
+    hostname: pago.example.com
+    build: 
+      context: ../pago
+      dockerfile: ../wrangler.Dockerfile
+  #  healthcheck:
+   #   test: ["CMD-SHELL", "ping 0.0.0.0:9000"]
+   #   interval: 10s
+   #   timeout: 5s
+    #  retries: 5
+    environment:
+      WEBPAY_VERSION: 1.0
+    volumes:
+      - ../pago:/root
+    ports:
+      - "9000:9000"
+    profiles:
+      - test
+    networks:
+      - testnet
+    command:
+      - wrangler
+      - dev 
+      - --env=development
+
+
+  repair:
+    container_name: repair-d
+    image: repair
+    hostname: repair.example.com
+    build:
+      context: ../repair
+      dockerfile: ../wrangler.Dockerfile
+    environment:
+      WEBPAY_VERSION: 1.0
+    volumes:
+      - ../repair:/root
+    ports:
+      - "9100:9100"
+    profiles:
+      - test
+    networks:
+      - testnet
+    command:
+      - wrangler
+      - dev
+      - --env=development
+
+
+  dash-pago:
+    container_name: pago-dash
+    image: pago
+    tty: true
+    stdin_open: true
+    build:
+      context: ../pago
+      dockerfile: ../wrangler.Dockerfile
+    volumes:
+      - ../pago:/root
+    profiles:
+      - test
+    networks:
+      - testnet
+
+  dash-repair:
+    container_name: repair-dash
+    image: dash-repair
+    tty: true
+    stdin_open: true
+    build:
+      context: ../repair
+      dockerfile: ../wrangler.Dockerfile
+    volumes:
+      - ../repair:/root
+    profiles:
+      - test
+    networks:
+      - testnet
+
+
+
+  pagocurl:
+    container_name: pagocurl-d
+    image: curlimages/curl
+#   command: " curl -s http://pago:9000 | grep -o 'No existe' "
+  #  command: ruby scan.rb < "jjjj"
+    command: ruby scan.bb
+    depends_on:
+      - pago
+    profiles:
+      - test
+    networks:
+      - testnet
+
+
+  scanner:
+    container_name: scanner-d
+    image: scanner
+    tty: true
+    stdin_open: true
+    build:
+      context: ../scanner
+      dockerfile: ../scanner.Dockerfile
+    depends_on:
+      pago:
+        condition: service_healthy
+    profiles:
+      - test
+    networks:
+      - testnet
+    volumes:
+      - ./scanner:/myapp
+      - bundle:/usr/local/bundle
+    command:
+      - bash
+    #command: >
+    #  curl -v http://pago.example.com:9000/pagar?amount=35000
+
+
+    #$(RUBY) script/mobi_postprocess.rb $<.bak > $<
+
+
+  #prueba web y rust
+  webcurl:
+    container_name: webcurl-d
+    image: curlimages/curl
+    command: >
+                curl testweb:4000
+    links:
+      - testweb
+    networks:
+      - testnet
+    profiles:
+      - test
+
+
+  curl-tbk:
+    container_name: curl-tbk-d
+    container_name: curl
+    image: curlimages/curl
+    hostname: curl
+    command: >
+                curl -v -X POST https://webpay3gint.transbank.cl/rswebpaytransaction/api/webpay/v1.0/transactions 
+                --data '{ "buy_order": "ordenCompra12345678", "session_id":"session1234557545", "amount": "1000", "return_url": "https://www.alectrica.cl/callback_onepay"}' 
+                -H "Content-Type":"application/json" 
+                -H "Tbk-Api-Key-Id":"597055555532" 
+                -H "Tbk-Api-Key-Secret":"579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C"
+    profiles:
+      - curl-tbk
+
+
+  curl-mach: 
+    container_name: curl-mach-d
+    image: curlimages/curl
+    command: >
+                curl -v -X POST https://biz-sandbox.soymach.com/payments
+                --data '{ "payment": { "amount": 3000, "message": "jj", "title": "jj" } }' 
+                -H "Content-Type:application/json" 
+                -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJidXNpbmVzc01hY2hJZCI6ImQyODcxM2M5LWFlOGEtNDYzZC05OGE5LWE5NjM2NTZlZWJkMyIsImJ1c2luZXNzU2VjcmV0SWQiOiI2NmJmZTFlYS01OTIzLTQ4MGItOWQ3Yy1hMTBkZGNiZWVlZmMiLCJzY29wZXMiOlsicGF5bWVudHMuY3JlYXRlIiwicGF5bWVudHMuZ2V0Il0sImlhdCI6MTU5OTA5NDM0Mn0.tEWX5LuT2-9SWrgysXavoft1yz7BiRVOjjB8-NRZVys"
+    profiles:
+      - curl-mach
+
+
+
+  calibre-web:
+    image: lscr.io/linuxserver/calibre-web:latest
+    container_name: calibre-web
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Santiago
+      - DOCKER_MODS=linuxserver/calibre-web:calibre #optional
+      - OAUTHLIB_RELAX_TOKEN_SCOPE=1 #optional
+    volumes:
+      - /home/tio/calibre/config:/config
+      - /home/tio/calibre/books:/books
+    ports:
+      - 8083:8083
+    restart: unless-stopped
+    profiles:
+      - calibre
+
+...
