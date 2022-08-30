@@ -9,7 +9,7 @@ networks:
   testnet:
   webnet: 
   wannet:
-  bot:
+  alectricos:
 
 services:
 #servicios con imagnes para pruebas en modo local        
@@ -36,7 +36,7 @@ services:
 
   app: &app
     build:
-      context: ../alectrica_site
+      context: ../plataforma
       target: local-tester
     volumes: [".:/app"] # mount current directory into the image
     # use tmpfs for tmp and log for performance and to allow
@@ -51,7 +51,7 @@ services:
       RAILS_ENV: test
       NO_USAR_DATABASE_CLEANER: 'usar'
     env_file:
-      - ../alectrica_site/alectrico.env
+      - ../plataforma/alectrico.env
     depends_on:
       db-test: {"condition":"service_healthy"}
 
@@ -59,27 +59,27 @@ services:
     <<: *db
 
 
-  bot-migrate:
+  alectricos-migrate:
     build: 
-      context: ../bot
-    container_name: bot-d-migracion
+      context: ../alectricos
+    container_name: alectricos-d-migracion
     command: " manage.py migrate"
     networks:
-      - bot
+      - alectricos
 
 
-  bot:
+  alectricos:
    tty: true
    stdin_open: true
    build: 
-     context: ../bot
+     context: ../alectricos
    volumes:
-     - ../bot/:/app/
-   container_name: bot-d
+     - ../alectricos/:/app/
+   container_name: alectricos-d
    ports:
      - '8000:8000'
    networks:
-     - bot
+     - alectricos
 #--------------------
 
   db: 
@@ -136,14 +136,14 @@ services:
   db-migrate:
     container_name: db-migrate-d
     build:
-      context: ../alectrica_site
+      context: ../plataforma
       target: local-tester
     image: ale-test-dbd-migrate:1.0.0
     volumes:
-      - ../alectrica_site/:/myapp
+      - ../plataforma/:/myapp
       - bundle:/usr/local/bundle
     env_file:
-      - ../alectrica_site/alectrico.env
+      - ../plataforma/alectrico.env
     depends_on:
      db:
       condition: service_healthy
@@ -161,14 +161,14 @@ services:
   local-migrate:
     container_name: local-migrate-d
     build:
-      context: ../alectrica_site
+      context: ../plataforma
       target: local-tester
     image: ale-test-local-d-migrate:1.0.0
     volumes:
-      - ../alectrica_site/:/myapp
+      - ../plataforma/:/myapp
       - bundle:/usr/local/bundle
     env_file:
-      - ../alectrica_site/alectrico.env.local-test
+      - ../plataforma/alectrico.env.local-test
     environment:
       USAR_DATABASE_CLEANER: 'usar'
     networks:
@@ -185,14 +185,14 @@ services:
   tbk:
     container_name: tbk-d
     build:
-      context: ../alectrica_site
+      context: ../plataforma
       target: local-tester
     image: ale-test-tbk-d:1.0.0
     volumes:
-      - ../alectrica_site/:/myapp
+      - ../plataforma/:/myapp
       - bundle:/usr/local/bundle
     env_file:
-      - ../alectrica_site/alectrico.env
+      - ../plataforma/alectrico.env
     depends_on:
       db-migrate:
        condition: service_completed_successfully
@@ -206,16 +206,16 @@ services:
   test:
     container_name: test-d
     build:
-      context: ../alectrica_site
+      context: ../plataforma
       target: local-tester
     environment:
       NO_USAR_DATABASE_CLEANER: 'usar'
     image: ale-test-test-d:1.0.0
     volumes:
-      - ../alectrica_site/:/myapp
+      - ../plataforma/:/myapp
       - bundle:/usr/local/bundle
     env_file:
-      - ../alectrica_site/alectrico.env
+      - ../plataforma/alectrico.env
     depends_on:
       db-migrate:
         condition: service_completed_successfully
@@ -229,16 +229,16 @@ services:
   pendientes:
     container_name: pendientes-d
     build:
-      context: ../alectrica_site
+      context: ../plataforma
       target: local-tester
     environment:
       NO_USAR_DATABASE_CLEANER: 'usar'
     image: ale-test-test-d:1.0.0
     volumes:
-      - ../alectrica_site/:/myapp
+      - ../plataforma/:/myapp
       - bundle:/usr/local/bundle
     env_file:
-      - ../alectrica_site/alectrico.env
+      - ../plataforma/alectrico.env
     depends_on:
       db-migrate:
         condition: service_completed_successfully
@@ -253,7 +253,7 @@ services:
   tone:
     container_name: tone-d
     build:
-      context: ../alectrica_site
+      context: ../plataforma
       target: local-tester
     environment:
       WEBPAY_METHOD: POST
@@ -265,10 +265,10 @@ services:
       NO_USAR_DATABASE_CLEANER: 'usar'
     image: ale-test-test-d:1.0.0
     volumes:
-      - ../alectrica_site/:/myapp
+      - ../plataforma/:/myapp
       - bundle:/usr/local/bundle
     env_file:
-      - ../alectrica_site/alectrico.env
+      - ../plataforma/alectrico.env
     depends_on:
       db-migrate:
         condition: service_completed_successfully
@@ -282,14 +282,14 @@ services:
   cucumber:
     container_name: cucumber-d
     build:
-      context: ../alectrica_site
+      context: ../plataforma
       target: local-tester
     image: ale-test-cucumber-d:1.0.0
     volumes:
-      - ../alectrica_site:/myapp
+      - ../plataforma:/myapp
       - bundle:/usr/local/bundle
     env_file:
-      - ../alectrica_site/alectrico.env
+      - ../plataforma/alectrico.env
     depends_on:
       db-migrate:
        condition: service_completed_successfully
@@ -304,14 +304,14 @@ services:
   usuario:
     container_name: usuario-d
     build:
-      context: ../alectrica_site
+      context: ../plataforma
       target: local-tester
     image: ale-test-usuario-d:1.0.0
     volumes:
-      - ../alectrica_site/:/myapp
+      - ../plataforma/:/myapp
       - bundle:/usr/local/bundle
     env_file:
-      - ../alectrica_site/alectrico.env.local-test
+      - ../plataforma/alectrico.env.local-test
     environment:
       USAR_DATABASE_CLEANER: 'usar'
     networks:
@@ -326,7 +326,7 @@ services:
   testweb:
     container_name: testweb-d
     build:
-      context: ../alectrica_site
+      context: ../plataforma
       target: local-development
     tty: true
     stdin_open: true
@@ -343,10 +343,10 @@ services:
       LC_TIME: "es_CL.UTF-8"
       LANG: "es_CL.UTF-8"
     volumes:
-      - ../alectrica_site/:/myapp
+      - ../plataforma/:/myapp
       - bundle:/usr/local/bundle
     env_file:
-      - ../alectrica_site/alectrico.env
+      - ../plataforma/alectrico.env
     tmpfs:
       - /tmp
       - /app/tmp/pids
@@ -373,7 +373,7 @@ services:
   web:
     container_name: web-d
     build:
-      context: ../alectrica_site
+      context: ../plataforma
       target: local-development
     hostname: www.alectrico.d
     tty: true
@@ -391,10 +391,10 @@ services:
       LC_TIME: "es_CL.UTF-8"
       LANG: "es_CL.UTF-8"
     volumes:
-      - ../alectrica_site/:/myapp
+      - ../plataforma/:/myapp
       - bundle:/usr/local/bundle
     env_file:
-      - ../alectrica_site/alectrico.env
+      - ../plataforma/alectrico.env
     tmpfs:
       - /tmp
       - /myapp/tmp/pids
@@ -414,7 +414,7 @@ services:
   bash:
     container_name: bash-d
     build:
-      context: ../alectrica_site
+      context: ../plataforma
       target: local-development
     tty: true
     stdin_open: true
@@ -430,10 +430,10 @@ services:
       LC_TIME: "es_CL.UTF-8"
       LANG: "es_CL.UTF-8"
     volumes:
-      - ../alectrica_site/:/myapp
+      - ../plataforma/:/myapp
       - bundle:/usr/local/bundle
     env_file:
-      - ../alectrica_site/alectrico.env
+      - ../plataforma/alectrico.env
     tmpfs:
       - /tmp
       - /app/tmp/pids
@@ -447,7 +447,8 @@ services:
     profiles:
        - proa
 
-
+#workers de cloudflare, no se pueden usar offline
+#-------------------------------------------------------------
   pago:
     container_name: pago-d
     image: pago
@@ -475,6 +476,9 @@ services:
       - dev 
       - --env=development
 
+
+#workers de cloudflare, no se pueden usar offline
+#-------------------------------------------------------------
   credito:
     container_name: credito-d
     image: credito
@@ -503,7 +507,8 @@ services:
       - --env=development
 
 
-
+#workers de cloudflare, no se pueden usar offline
+#-------------------------------------------------------------
   repair:
     container_name: repair-d
     image: repair
@@ -527,6 +532,8 @@ services:
       - --env=development
 
 
+#workers de cloudflare, no se pueden usar offline
+#-------------------------------------------------------------
   dash-pago:
     container_name: pago-dash
     image: pago
@@ -600,7 +607,8 @@ services:
     #$(RUBY) script/mobi_postprocess.rb $<.bak > $<
 
 
-  #prueba web y rust
+#prueba web y rust
+#.---------------------------------------
   webcurl:
     container_name: webcurl-d
     image: curlimages/curl

@@ -1,27 +1,14 @@
 #Acceso a información pública del sistema eléctrico
-token="d23fea76c62897e0576741328dbe49de"
-user="alx@alectrico.cl"
+#oken="d23fea76c62897e0576741328dbe49de"
+#ser="alx@alectrico.cl"
+#
+#curl -i -X GET \
+# 'https://sipub.api.coordinador.cl/sipub/api/v2/demanda_sistema_real?user_key=$token&fecha=2018‐01‐01' \
+#-H 'Content-Type: application/json'
+#este no funciona
+curl "https://sipub.api.coordinador.cl/sipub/api/v2/recursos/demanda_sistema_real/?user_key=d23fea76c62897e0576741328dbe49de&fecha=2021‐07‐10"
+#este funciona
+curl "https://sipub.api.coordinador.cl/sipub/api/v2/recursos/demanda_sistema_real/?user_key=d23fea76c62897e0576741328dbe49de&fecha=2021-07-10"
+ 
 
-curl -i -X GET \
- 'https://sipub.api.coordinador.cl/sipub/api/v2/demanda_sistema_real?user_key=$token&fecha=2018‐01‐01' \
--H 'Content-Type: application/json'
 
-curl "https://sipub.api.coordinador.cl/sipub/api/v2/recursos/costos_marginales_reales?user_key=$token&fecha=2018‐01‐31" \
-
-
-#respuestas
-HTTP/1.1 400 Bad request
-Date: Sun, 10 Jul 2022 07:08:26 GMT
-Server: Apache
-content-length: 90
-cache-control: no-cache
-content-type: text/html
-Vary: Accept-Encoding
-Connection: close
-
-<html><body><h1>400 Bad request</h1>
-Your browser sent an invalid request.
-</body></html>
-<html><body><h1>400 Bad request</h1>
-Your browser sent an invalid request.
-</body></html>

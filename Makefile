@@ -13,6 +13,11 @@ KINDLEGEN = bin/kindlegen
           #p png-partidas/*.png.tmp alectrico-2021 ; \
         done; 
 
+#ejemplo académico para recibir pagos blochain
+.PHONY: bito
+bito:
+	docker build bito -t bito -f bito.Dockerfile
+	docker run -it --rm -e PUID=1000 -e PGUID=1000 -v $(PWD)/bito/:/app bito shotgun
 
 
 pyt:
@@ -63,8 +68,6 @@ alectricon:
 pendientes:
 	docker compose up pendientes
 
-alectricon:
-	docker run -it -e PUID=1000 -e PGID=1000 -v $(shell pwd)/:/myapp alectricon /bin/sh
 
 tone:
 	docker compose up tone
